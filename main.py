@@ -13,9 +13,11 @@ def main():
     is_game_over=False
     pygame.init()
     mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?')
-    control=input('Keyboard only controls(K) or Keyboard/mouse(M) controls?')
+    control=input('Keyboard controls(K) or Mouse(M) controls?')
     while mode not in ['P','S', 'T']:
-        mode=input('Invalid mode. Please enter P for point attack or S for survival.')
+        mode=input('Invalid mode. Please enter P for point attack, T for time attack or S for survival.')
+    while control not in ['K','M']:
+        control=input('Invalid selection. Please enter K for keyboard or M for mouse.')
     while play_again:
         score=0
         
