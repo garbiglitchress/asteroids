@@ -11,12 +11,23 @@ import random
 def main():
     play_again='Yes'
     is_game_over=False
+    has_printed=False
     pygame.init()
-    mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?')
-    control=input('Keyboard controls(K) or Mouse(M) controls?')
-    while mode not in ['P','S', 'T']:
+    instructions=input('Do you want instructions?').lower()
+    is_ready=False
+    if instructions=='y':
+        print('''Keyboard Controls: WASD to move, and space to shoot.
+              Mouse controls: Left click to shoot, and Right Click to move ship toward cursor.
+              If you run into blue asteroids, you'll get a multiplier.''')
+
+    
+    mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?').lower()
+    control=input('Keyboard controls(K) or Mouse(M) controls?').lower()
+    #mode='P'
+    #control='M'
+    while mode not in ['p','s', 't']:
         mode=input('Invalid mode. Please enter P for point attack, T for time attack or S for survival.')
-    while control not in ['K','M']:
+    while control not in ['k','m']:
         control=input('Invalid selection. Please enter K for keyboard or M for mouse.')
     while play_again:
         score=0
@@ -25,6 +36,8 @@ def main():
         time_font=pygame.font.SysFont('Comic Sans MS', 30)
         confirmation_font = pygame.font.SysFont('Comic Sans MS', 30)
         multiplier_font = pygame.font.SysFont('Comic Sans MS', 30)
+        high_score_font = pygame.font.SysFont('Comic Sans MS', 30)
+        
         clock = pygame.time.Clock()
         total_time=0#time elapsed in game
         multiplier=1
@@ -40,9 +53,11 @@ def main():
         asteroids = pygame.sprite.Group()
         shots = pygame.sprite.Group()
         powerups = pygame.sprite.Group()
+        high_score_surface_two=None
+        high_score_surface_three=None
         should_spawn_powerup=False
         time_started_powerup = 0
-        has_powerup=False
+        has_showed_scores=False
         dt=0
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         print('Starting asteroids!')
@@ -79,7 +94,7 @@ def main():
                 if (ast.check_collision(p1)==True and p1.invincible==False):
                     iframe_timer=total_time
                     p1.invincible=True
-                    if mode=='S':
+                    if mode=='s':
                         is_game_over=True
                         ending_message=f"Game Over! You scored {str(score)}!"
 #                        score_surface=score_font.render(ending_message, False, (0,255,0))
@@ -96,7 +111,7 @@ def main():
 #                            return
 #                        else:
 #                            pass
-                    elif mode!='S':
+                    elif mode!='s':
                         score=int(score*.9)#if not doing survival, just lose points
                         score_surface=score_font.render(str(score), False, (0,255,0))#update score in hud
                         
@@ -116,7 +131,7 @@ def main():
             if total_time>iframe_timer+1:
                 p1.invincible=False
             
-            if int(total_time)>=TIME_LIMIT and mode=='P':
+            if int(total_time)>=TIME_LIMIT and mode=='p':
                 is_game_over=True
                 ending_message=f"Time Up! You scored {str(score)}!"
 #                score_surface=score_font.render(ending_message, False, (0,255,0))
@@ -133,7 +148,7 @@ def main():
 #                        return
 #                    else:
 #                        pass
-            if score>=SCORE_GOAL and mode=='T':
+            if score>=SCORE_GOAL and mode=='t':
                 
                 if not is_game_over:
                     final_time=round(total_time, 2)
@@ -157,12 +172,34 @@ def main():
             if is_game_over:
                 score_surface=score_font.render(ending_message, False, (0,255,0))
                 confirmation_surface=confirmation_font.render('Y to play again, E to end.', False, (0,255,0))
+                if mode=='t':
+                    game_over_screen=GameOverScreen(confirmation_surface,
+                                                screen,asteroids,p1, final_time, mode) 
+                else:                  
 
-                game_over_screen=GameOverScreen(confirmation_surface,
-                                                screen,asteroids,p1)
+                    game_over_screen=GameOverScreen(confirmation_surface,
+                                                screen,asteroids,p1, score, mode)
+                if not has_showed_scores:
+                    high_scores=game_over_screen.save()
+                    has_showed_scores=True
+                
+                
+                high_score_surface_one=high_score_font.render(str(high_scores[0]),False,(0,255,0))
+                if len(high_scores)>1:
+                    high_score_surface_two=high_score_font.render((str(high_scores[1])),False,(0,255,0))
+                if len(high_scores)>2:
+                    high_score_surface_three=high_score_font.render((str(high_scores[2])),False,(0,255,0))
+
                 game_over_screen.show()
                 keys=pygame.key.get_pressed()
+                if high_score_surface_one!=None:    
+                    screen.blit(high_score_surface_one, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.5))
+                if high_score_surface_two!=None:
+                    screen.blit(high_score_surface_two, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.6))
+                if high_score_surface_three!=None:
+                    screen.blit(high_score_surface_three, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.7))
                 if keys[pygame.K_y]:
+                    has_showed_scores=False
                     is_in_infinite=False
                     is_game_over=False
                 elif keys[pygame.K_e]:
@@ -171,6 +208,7 @@ def main():
                     pass
             
             screen.blit(score_surface, (SCREEN_WIDTH*.4, SCREEN_HEIGHT*.9))
+            
             if not is_game_over:
                 screen.blit(time_surface, (SCREEN_WIDTH*.8, SCREEN_HEIGHT*.9))
                 screen.blit(multiplier_surface, (SCREEN_WIDTH*.5, SCREEN_HEIGHT*.9))
@@ -182,9 +220,9 @@ def main():
             
             total_time+=dt
             multiplier_surface= multiplier_font.render(f"x{multiplier}" , False, (0,255,0))
-            if mode=='P':
+            if mode=='p':
                 time_surface = time_font.render(str((int)(TIME_LIMIT-total_time)), False, (0,255,0))
-            elif mode=='S' or mode=='T':
+            elif mode=='s' or mode=='t':
                 time_surface = time_font.render(str((int)(total_time)), False, (0,255,0))
         
         

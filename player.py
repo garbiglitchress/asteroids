@@ -28,7 +28,7 @@ class Player(CircleShape):
         self.rotation+=(PLAYER_TURN_SPEED*dt)
     def update(self, dt):
         self.cooldown-=dt
-        if self.control=='K':
+        if self.control=='k':
             keys = pygame.key.get_pressed()
 
             if keys[pygame.K_a]:
@@ -41,7 +41,7 @@ class Player(CircleShape):
                 self.move(dt)
             if keys[pygame.K_SPACE]:
                 self.shoot()
-        elif self.control=='M':#keyboard/mouse for now, ideally the ship would move toward the mouse when you're rightclicking, and would always be pointing toward the mouse, probably using a vector?
+        elif self.control=='m':#keyboard/mouse for now, ideally the ship would move toward the mouse when you're rightclicking, and would always be pointing toward the mouse, probably using a vector?
             keys = pygame.key.get_pressed()
 
             
