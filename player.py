@@ -4,13 +4,15 @@ from constants import *
 from shot import *
 import math
 class Player(CircleShape):
-    def __init__(self,x,y,control):
+    def __init__(self,x,y,control, accel):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation=0
         self.cooldown=0
+        self.cur_speed=0
         self.control=control
         self.invincible = False
         self.wraps=True
+        self.accel=accel
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         right = pygame.Vector2(0, 1).rotate(self.rotation + 90) * self.radius / 1.5
@@ -37,8 +39,10 @@ class Player(CircleShape):
                 self.rotate(dt)
             if keys[pygame.K_s]:
                 self.move(-dt)
-            if keys[pygame.K_w]:
+            elif keys[pygame.K_w]:
                 self.move(dt)
+            else:# if not moving, reset speed
+                self.cur_speed=0
             if keys[pygame.K_SPACE]:
                 self.shoot()
         elif self.control=='m':#keyboard/mouse for now, ideally the ship would move toward the mouse when you're rightclicking, and would always be pointing toward the mouse, probably using a vector?
@@ -54,9 +58,12 @@ class Player(CircleShape):
                 self.shoot()
             if mouse_move==True:
                 self.move(dt)
+            else:
+                self.cur_speed=0
     def move(self, dt):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
-        self.position=(self.position+(forward*PLAYER_SPEED*dt))
+        self.cur_speed=min(self.cur_speed+PLAYER_ACCEL, MAX_PLAYER_SPEED)
+        self.position=(self.position+(forward*self.cur_speed*dt))
         if self.position.x>SCREEN_WIDTH:
             self.position.x%=SCREEN_WIDTH
         if self.position.x<0:
@@ -67,7 +74,7 @@ class Player(CircleShape):
             self.position.y+=SCREEN_HEIGHT
     def shoot(self):
         if self.cooldown<=0:
-            s=Shot(self.position.x, self.position.y, SHOT_RADIUS)
+            s=Shot(self.position.x, self.position.y, SHOT_RADIUS, distance=0)
             s.velocity=pygame.Vector2(0,1).rotate(self.rotation)
             s.velocity*=PLAYER_SHOOT_SPEED
             self.cooldown=PLAYER_SHOOT_COOLDOWN

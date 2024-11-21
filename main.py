@@ -14,6 +14,7 @@ def main():
     has_printed=False
     pygame.init()
     instructions=input('Do you want instructions?').lower()
+    #instructions='n'
     is_ready=False
     if instructions=='y':
         print('''Keyboard Controls: WASD to move, and space to shoot.
@@ -23,9 +24,10 @@ def main():
     
     mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?').lower()
     control=input('Keyboard controls(K) or Mouse(M) controls?').lower()
-    #mode='P'
-    #control='M'
+    #mode='p'
+    #control='k'
     while mode not in ['p','s', 't']:
+    #while mode not in OPTIONS
         mode=input('Invalid mode. Please enter P for point attack, T for time attack or S for survival.')
     while control not in ['k','m']:
         control=input('Invalid selection. Please enter K for keyboard or M for mouse.')
@@ -70,7 +72,7 @@ def main():
         Powerup.containers = (drawable, updatable, powerups)
 
         
-        p1=Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, control)
+        p1=Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, control, PLAYER_ACCEL)
         is_in_infinite=True
         asteroid_field=AsteroidField()
         while (is_in_infinite):
@@ -80,6 +82,10 @@ def main():
                     return
             
             pygame.Surface.fill(screen, (0,0,0))
+
+            for s in shots:
+                if s.distance>SHOT_DISTANCE:
+                    s.kill()
 
             for up in updatable:
                 up.update(dt)
@@ -134,20 +140,6 @@ def main():
             if int(total_time)>=TIME_LIMIT and mode=='p':
                 is_game_over=True
                 ending_message=f"Time Up! You scored {str(score)}!"
-#                score_surface=score_font.render(ending_message, False, (0,255,0))
-#                confirmation_surface=confirmation_font.render('Y to play again, E to end.', False, (0,255,0))
-#                screen.blit(confirmation_surface, (SCREEN_WIDTH*.5, SCREEN_HEIGHT*.8))
-#                for ast in asteroids:
-#                    ast.kill()
-                    #del asteroid_field#prevent more asteroids from spawning
-#                    p1.kill()
-#                    keys = pygame.key.get_pressed()
-#                    if keys[pygame.K_y]:
-#                        is_in_infinite=False
-#                    elif keys[pygame.K_e]:
-#                        return
-#                    else:
-#                        pass
             if score>=SCORE_GOAL and mode=='t':
                 
                 if not is_game_over:
@@ -155,23 +147,10 @@ def main():
                 is_game_over=True
                 
                 ending_message=f"Congratulations! You scored {SCORE_GOAL} points in {final_time} seconds!"
-#                score_surface=score_font.render(ending_message, False, (0,255,0))
-#                confirmation_surface=confirmation_font.render('Y to play again, E to end.', False, (0,255,0))
-#                screen.blit(confirmation_surface, (SCREEN_WIDTH*.5, SCREEN_HEIGHT*.8))
-#                for ast in asteroids:
-#                    ast.kill()
-#                del asteroid_field#prevent more asteroids from spawning
-#                p1.kill()
-#                keys = pygame.key.get_pressed()
-#                if keys[pygame.K_y]:
-#                    is_in_infinite=False
-#                elif keys[pygame.K_e]:
-#                    return
-#                else:
-#                    pass
             if is_game_over:
                 score_surface=score_font.render(ending_message, False, (0,255,0))
                 confirmation_surface=confirmation_font.render('Y to play again, E to end.', False, (0,255,0))
+                
                 if mode=='t':
                     game_over_screen=GameOverScreen(confirmation_surface,
                                                 screen,asteroids,p1, final_time, mode) 
@@ -184,20 +163,20 @@ def main():
                     has_showed_scores=True
                 
                 
-                high_score_surface_one=high_score_font.render(str(high_scores[0]),False,(0,255,0))
+                high_score_surface_one=high_score_font.render(f"1: {float(high_scores[0])/60}:{float(high_scores[0])%60}",False,(0,255,0))
                 if len(high_scores)>1:
-                    high_score_surface_two=high_score_font.render((str(high_scores[1])),False,(0,255,0))
+                    high_score_surface_two=high_score_font.render(f"2: {high_scores[1]}",False,(0,255,0))
                 if len(high_scores)>2:
-                    high_score_surface_three=high_score_font.render((str(high_scores[2])),False,(0,255,0))
+                    high_score_surface_three=high_score_font.render(f"3: {high_scores[2]}",False,(0,255,0))
 
                 game_over_screen.show()
                 keys=pygame.key.get_pressed()
                 if high_score_surface_one!=None:    
                     screen.blit(high_score_surface_one, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.5))
                 if high_score_surface_two!=None:
-                    screen.blit(high_score_surface_two, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.6))
+                    screen.blit(high_score_surface_two, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.55))
                 if high_score_surface_three!=None:
-                    screen.blit(high_score_surface_three, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.7))
+                    screen.blit(high_score_surface_three, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.6))
                 if keys[pygame.K_y]:
                     has_showed_scores=False
                     is_in_infinite=False
