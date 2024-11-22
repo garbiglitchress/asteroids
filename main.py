@@ -6,26 +6,36 @@ from asteroidfield import *
 from powerup import *
 from gameoverscreen import *
 import random
-
+import sys
 
 def main():
     play_again='Yes'
     is_game_over=False
     has_printed=False
+    is_debug=False
+    if len(sys.argv)>1:
+        if sys.argv[1]=='-d':
+            is_debug=True
     pygame.init()
-    instructions=input('Do you want instructions?').lower()
+    if is_debug:
+        instructions='n'
+    else:
+        instructions=input('Do you want instructions?').lower()
+    
     #instructions='n'
     is_ready=False
+
     if instructions=='y':
         print('''Keyboard Controls: WASD to move, and space to shoot.
               Mouse controls: Left click to shoot, and Right Click to move ship toward cursor.
               If you run into blue asteroids, you'll get a multiplier.''')
 
-    
-    mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?').lower()
-    control=input('Keyboard controls(K) or Mouse(M) controls?').lower()
-    #mode='p'
-    #control='k'
+    if is_debug==True:
+        mode='t'
+        control='k'
+    else:
+        mode=input('Do you want to play Point Attack(P) or Survival(S) or Time Attack(T)?').lower()
+        control=input('Keyboard controls(K) or Mouse(M) controls?').lower()
     while mode not in ['p','s', 't']:
     #while mode not in OPTIONS
         mode=input('Invalid mode. Please enter P for point attack, T for time attack or S for survival.')
@@ -137,16 +147,32 @@ def main():
             if total_time>iframe_timer+1:
                 p1.invincible=False
             
-            if int(total_time)>=TIME_LIMIT and mode=='p':
-                is_game_over=True
-                ending_message=f"Time Up! You scored {str(score)}!"
-            if score>=SCORE_GOAL and mode=='t':
+            if is_debug:
+                if int(total_time)>=DEBUG_TIME_LIMIT and mode=='p':
+                    is_game_over=True
+                    ending_message=f"Time Up! You scored {str(score)}!"
+            else:
+                if int(total_time)>=TIME_LIMIT and mode=='p':
+                    is_game_over=True
+                    ending_message=f"Time Up! You scored {str(score)}!"            
+            if is_debug:
+                if score>=DEBUG_SCORE_GOAL and mode=='t':
                 
-                if not is_game_over:
-                    final_time=round(total_time, 2)
-                is_game_over=True
+                    if not is_game_over:
+                        final_time=round(total_time, 2)
+                    is_game_over=True
                 
-                ending_message=f"Congratulations! You scored {SCORE_GOAL} points in {final_time} seconds!"
+                    ending_message=f"Congratulations! You scored {DEBUG_SCORE_GOAL} points in {final_time} seconds!"
+            else:
+
+                
+                if score>=SCORE_GOAL and mode=='t':
+                
+                    if not is_game_over:
+                        final_time=round(total_time, 2)
+                    is_game_over=True
+                
+                    ending_message=f"Congratulations! You scored {SCORE_GOAL} points in {final_time} seconds!"
             if is_game_over:
                 score_surface=score_font.render(ending_message, False, (0,255,0))
                 confirmation_surface=confirmation_font.render('Y to play again, E to end.', False, (0,255,0))
@@ -162,12 +188,12 @@ def main():
                     high_scores=game_over_screen.save()
                     has_showed_scores=True
                 
-                
-                high_score_surface_one=high_score_font.render(f"1: {float(high_scores[0])/60}:{float(high_scores[0])%60}",False,(0,255,0))
+
+                high_score_surface_one=high_score_font.render(f"1: {high_scores[0]}",False,(0,255,0))
                 if len(high_scores)>1:
                     high_score_surface_two=high_score_font.render(f"2: {high_scores[1]}",False,(0,255,0))
                 if len(high_scores)>2:
-                    high_score_surface_three=high_score_font.render(f"3: {high_scores[2]}",False,(0,255,0))
+                    high_score_surface_three=high_score_font.render(f"3: {high_scores[2]}",False,(0,255,0))                    
 
                 game_over_screen.show()
                 keys=pygame.key.get_pressed()
@@ -200,7 +226,10 @@ def main():
             total_time+=dt
             multiplier_surface= multiplier_font.render(f"x{multiplier}" , False, (0,255,0))
             if mode=='p':
-                time_surface = time_font.render(str((int)(TIME_LIMIT-total_time)), False, (0,255,0))
+                if is_debug:
+                    time_surface = time_font.render(str((int)(DEBUG_TIME_LIMIT-total_time)), False, (0,255,0))
+                else:
+                    time_surface = time_font.render(str((int)(TIME_LIMIT-total_time)), False, (0,255,0))
             elif mode=='s' or mode=='t':
                 time_surface = time_font.render(str((int)(total_time)), False, (0,255,0))
         
